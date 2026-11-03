@@ -2,17 +2,17 @@
 
 Single-source compliance and reference framework for Pennsylvania health insurance operations, with emphasis on auditability, evidence handling, and regulatory traceability.
 
-This repository is intended as a governance and compliance reference for healthcare billing, collection, PHI handling, and operational controls. It is not legal advice and should be reviewed by counsel before implementation in regulated workflows.
+This repository is a governance and compliance reference for healthcare billing, collection, PHI handling, and operational controls. It is not legal advice and should be reviewed by qualified counsel before use in regulated workflows.
 
 ## Purpose
 
-Keystone Health consolidates the core elements needed to operate in a compliance-aware environment:
+Keystone Health consolidates the control elements needed to operate in a compliance-aware environment:
 
-- Regulatory reference tracking
-- Retention and evidence controls
-- Audit structure and assertions
-- Deployment and rollback guidance
-- Verification and governance workflow
+- regulatory reference tracking
+- retention and evidence controls
+- audit structure and assertions
+- deployment and rollback guidance
+- verification and governance workflow
 
 ## Scope
 
@@ -20,8 +20,8 @@ The framework is designed for:
 
 - U.S. federal regulatory references
 - Commonwealth of Pennsylvania-specific requirements
-- Operational controls relevant to healthcare billing, collections, and PHI handling
-- Evidence and auditability practices aligned with internal governance
+- operational controls relevant to healthcare billing, collections, and PHI handling
+- evidence and auditability practices aligned with internal governance
 
 ## Repository structure
 
@@ -71,10 +71,10 @@ Keystone_Health/
 ## How to use this repository
 
 1. Start with the audit and reference materials in `audit/` and `references/`.
-2. Review the retention classification guidance in `references/retention_classes.yaml`.
+2. Review the retention guidance in `references/retention_classes.yaml`.
 3. Use the deployment and rollback guidance in `runbook/` before production changes.
 4. Validate schema-driven artifacts with the audit tooling.
-5. Treat the repo as the control documentation and decision trail, not as a substitute for legal review.
+5. Treat the repository as the governance and control documentation, not as a substitute for legal review.
 
 ## Citation and governance model
 
@@ -85,11 +85,11 @@ Every citation in the framework carries a `basis` designation:
 - `internal_design` — a control decision, not a legal mandate
 - `best_practice` — advisory guidance only
 
-Important: citations marked as unverified have not been confirmed against primary source text. Those items should not be relied on for audit execution without legal review.
+Important: citations marked as unverified have not been confirmed against primary source text. Those items should not be used for audit execution without legal review.
 
 ## Audit and validation
 
-The repo includes a structured audit model and validation workflow.
+The repository includes a structured audit model and validation workflow.
 
 Example validation command:
 
@@ -99,13 +99,13 @@ python audit/validate_audit.py \
   --input audit/quarterly_audit.yaml
 ```
 
-The validation layer is intended to catch structural issues, missing fields, and schema mismatches before changes are promoted.
+The validation layer is meant to catch structural issues, missing fields, and schema mismatches before changes are promoted.
 
 ## Evidence handling
 
 Evidence is intentionally not stored directly in this repository. The repository holds the framework for identifying, classifying, and verifying evidence while preserving the separation between operational evidence and versioned governance documentation.
 
-This is by design to preserve:
+This preserves:
 
 - chain-of-custody integrity
 - evidence immutability
@@ -113,7 +113,7 @@ This is by design to preserve:
 
 ## Retention principles
 
-Retention logic is documented in the reference and schema materials and is organized around clear trigger events such as:
+Retention logic is defined around clear trigger events such as:
 
 - last effective date
 - determination date
@@ -124,7 +124,7 @@ The framework is designed to prevent common retention mistakes, especially aroun
 
 ## Fail-stop and operational controls
 
-The repo includes operational safeguards for high-risk scenarios such as:
+The repository includes safeguards for high-risk scenarios such as:
 
 - hash-chain mismatches
 - missing timestamp validation
@@ -156,10 +156,10 @@ This repository should be treated as a compliance reference framework, not as a 
 
 ## Contributing
 
-Contributions should be made with the same rigor expected of regulated documentation:
+Contributions should follow the same rigor expected of regulated documentation:
 
 - preserve traceability to authority
-- distinguish legal requirement from internal design
+- distinguish legal requirements from internal design
 - avoid unverified claims
 - update validation and governance artifacts when changing structure or assertions
 
@@ -169,4 +169,4 @@ This project is licensed under the MIT License. See `LICENSE` for details.
 
 ## Status
 
-This repository is positioned as a structured compliance framework and audit reference for Pennsylvania healthcare operations. It is intended to support formal review, documentation control, and governance alignment, not to substitute for legal or regulatory analysis.
+This repository is positioned as a structured compliance framework and audit reference for Pennsylvania healthcare operations. It supports governance, operational documentation, and review workflows while preserving a clear separation between evidence and documentation.
