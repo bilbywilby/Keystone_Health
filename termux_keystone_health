@@ -1,0 +1,36 @@
+#!/data/data/com.termux/files/usr/bin/bash
+​Termux Automation Script for Keystone Health Repository Rebuild
+​This script creates the folder structure, generates all files, and commits to main.
+​set -e
+​echo "=== 1. Updating packages and installing dependencies ==="
+pkg update -y && pkg install git python -y
+pip install pyyaml jsonschema requests
+​echo "=== 2. Creating Repository Directory ==="
+mkdir -p ~/Keystone_Health
+cd ~/Keystone_Health
+​echo "=== 3. Initializing Git Repository ==="
+git init
+git checkout -b main
+​echo "=== 4. Creating Folder Hierarchy ==="
+mkdir -p docs/adr runbook audit schema references tools .github/workflows
+​echo "=== 5. Writing Files ==="
+​README.md
+​cat << 'EOF' > README.md
+​Keystone Health Compliance Reference & Architecture Framework
+​This repository serves as the governance and control documentation for Keystone Health compliance operations in Pennsylvania healthcare billing, collections, and PHI handling.
+​⚠️ NOT LEGAL ADVICE. This framework documents control mappings, reference matrices, and operational procedures. It must be reviewed by qualified counsel before use in regulated workflows. All citations marked unverified have not been confirmed against primary source text and should not be relied upon without legal review.
+​Purpose
+​Keystone Health consolidates the control elements needed to operate in a compliance-aware environment:
+​regulatory reference tracking
+​retention and evidence controls
+​audit structure and assertions
+​deployment and rollback guidance
+​verification and governance workflow
+​Scope
+​The framework is designed for:
+​U.S. federal regulatory references
+​Commonwealth of Pennsylvania-specific requirements
+​operational controls relevant to healthcare billing, collections, and PHI handling
+​evidence and auditability practices aligned with internal governance
+​Citation and Governance Model
+​Every citation in the framework carries a basis designation:
