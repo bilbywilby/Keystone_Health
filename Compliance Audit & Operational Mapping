@@ -1,0 +1,106 @@
+# Keystone Health Forensic Navigator — Compliance Audit & Operational Mapping
+
+**Document Control:** Technical Verification & Medical Billing Advocacy Integration Report  
+**Target Architecture:** Keystone Health Forensic Navigator (`v1.3 audit checklist`)  
+**Jurisdictional Layer:** Federal (NSA, ERISA, HIPAA, FDCPA/Reg F) + Commonwealth of Pennsylvania (FCEUA, 42 Pa.C.S. § 5525)
+
+---
+
+## Executive Summary & System Compatibility
+
+The **Keystone Health Forensic Navigator Compliance Reference Framework** (v1.3) establishes a deterministic, immutable audit system for medical billing, claims adjudication, and health data governance. By combining cryptographic chain-of-custody logging (`prev_record_hash` / RFC 3161 TSA) with strict regulatory mappings (No Surprises Act, ERISA, FDCPA, HIPAA), the system provides an audit-proof ledger for patient financial advocacy and billing forensics.
+
+This document synthesizes Keystone’s regulatory controls with real-world medical billing audit protocols, establishing direct operational mappings for pre-service estimations, forensic Explanation of Benefits (EOB) audits, and balance billing dispute resolutions.
+
+---
+
+## Regulatory & Control Mapping Matrix
+
+| Control ID | Core Regulation | Statutory / Code Citation | Technical Assertion & Enforcement Mechanism | Verification Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **Q1 (5 Assertions)** | No Surprises Act (NSA) | 45 CFR §§ 149.410, 149.420; P.L. 116-260 | Enforces balance billing prohibitions for OON care at in-network facilities. Validates Good Faith Estimates (GFE) against final billed CPT/HCPCS codes. | ✅ Verified |
+| **Q2 (4 Assertions)** | QPA & IDR Methodology | 45 CFR §§ 149.140, 149.510 | Benchmarks Qualifying Payment Amount (QPA) calculations; enforces 6-year retention (`NSA-IDR-6Y`) for certified IDR entity arbitration records. | ✅ Verified |
+| **Q3 (4 Assertions)** | MPFS & FMV Benchmarking | 42 CFR § 414.22 + § 414.26 | Computes Fair Market Value (FMV) using Relative Value Units (RVUs) and Geographic Practice Cost Indices (GPCI) formulas. | ✅ Verified |
+| **Q4 (5 Assertions)** | HIPAA Security Rule | 45 CFR Parts 160/164 (Subparts A & C) | Enforces ePHI encryption in transit/rest (`FS4` fail-stop trigger). Mandates 6-year retention from *last effective date* (`HIPAA-DOC-6Y`). | ✅ Verified |
+| **Q5 (5 Assertions)** | FDCPA / FCEUA / Reg F | 15 U.S.C. § 1692; 12 CFR Part 1006; 73 P.S. § 2270.1 | Controls debt collection communications, validation notices, and cease-and-desist rules. Applies 3-year record retention (`CFPB-FDCPA-3Y`). | ✅ Verified |
+| **Q6 (3 Assertions)** | ERISA Preemption | 29 U.S.C. § 1001 et seq.; § 1144 | Determines self-funded vs. fully insured plan types to route regulatory enforcement (DOL vs. PA Insurance Department). | ✅ Verified |
+| **Q7 (3 Assertions)** | PA State Enforcement | PA Insurance Dept. / Act 2000-7 | Tracks state-level consumer complaint filings and market conduct rate benchmarks. | 🔎 Surfaced |
+| **Q8 (3 Assertions)** | Statute of Limitations | 42 Pa.C.S. § 5525(a)(8); 31 U.S.C. § 3731(b) | Enforces Pennsylvania's 4-year limitation on contract debt actions and 10-year False Claims Act maximum litigation window (`CLAIM-10Y`). | 🔎 Surfaced |
+
+---
+
+## Data Governance & Cryptographic Chain Architecture
+
+To maintain forensic integrity under audit conditions, the system implements a immutable ledger pattern for all medical billing and PHI interaction logs.
+
+```
+       +--------------------+      +--------------------+      +--------------------+
+       |  Evidence Record N |      | Evidence Record N+1|      | Evidence Record N+2|
+       +--------------------+      +--------------------+      +--------------------+
+       | event_id: UUID     |      | event_id: UUID     |      | event_id: UUID     |
+       | payload_hash       |      | payload_hash       |      | payload_hash       |
+       | prev_record_hash --+----->| prev_record_hash --+----->| prev_record_hash   |
+       | tsa_token (RFC3161)|      | tsa_token (RFC3161)|      | tsa_token (RFC3161)|
+       | retention_class    |      | retention_class    |      | retention_class    |
+       +--------------------+      +--------------------+      +--------------------+
+```
+
+### Mandatory Fail-Stop (FS) System Triggers
+
+ Automated automated execution must halt upon encountering any of the following conditions:
+
+1. **FS1 (Chain Corruption):** Any hash mismatch in `prev_record_hash` $\rightarrow$ *Immediate system halt; escalate to CTO/CCO.*
+2. **FS2 (Timestamp Loss):** Missing `tsa_token` on $>5\%$ of critical records $\rightarrow$ *Batch quarantine; escalate to SecOps.*
+3. **FS3 (Retention Misclassification):** Misclassified retention trigger on $>2\%$ of records ($0\%$ tolerance during active migration) $\rightarrow$ *Route to manual review queue.*
+4. **FS4 (Plaintext PHI Exposure):** Detection of `encryption_state == plaintext` on any external boundary $\rightarrow$ *Security incident ticket; escalate to CISO.*
+5. **FS5 (Missing Benchmark Vintage):** Null value for `benchmark_vintage` during QPA/IDR calculation $\rightarrow$ *Reject output; escalate to Pricing Analytics Lead.*
+
+---
+
+## Forensic Billing Audit & Cost Calculation Protocols
+
+### 1. Pre-Service Cost Projection Formula
+
+For planned clinical encounters, total patient out-of-pocket (OOP) exposure is modeled as:
+
+$$\text{Total OOP} = \min\left( \text{OOP}_{\text{Max}} - \text{OOP}_{\text{YTD}}, \quad \text{Deductible}_{\text{Rem}} + \left[ (\text{Billed Charge} \times \text{Contracted Ratio}) - \text{Deductible}_{\text{Rem}} \right] \times \text{Coinsurance } \% \right) + \text{Facility Fees} + \text{Anesthesia Fees}$$
+
+*Where:*
+*   $\text{Deductible}_{\text{Rem}} = \max(0, \text{Deductible}_{\text{Total}} - \text{Deductible}_{\text{Paid YTD}})$
+*   $\text{Allowed Amount} = \text{RVU}_{\text{Total}} \times \text{GPCI}_{\text{Geographic}} \times \text{Conversion Factor}$
+
+### 2. Forensic EOB Audit Workflow
+
+When auditing an Explanation of Benefits (EOB) or medical statement:
+
+1. **CPT/HCPCS Verification:** Cross-reference billed CPT codes against the plan’s Evidence of Coverage (EOC) schedule for the designated **Place of Service (POS)** (e.g., POS 11 Office vs. POS 22 Outpatient Hospital).
+2. **Preventive vs. Diagnostic Flagging:** Ensure 100% preventive coverage under ACA guidelines for qualifying CPT codes (e.g., screening colonoscopies CPT 45378). Reclassify incorrect diagnostic billing conversions.
+3. **Balance Billing Detection:** Identify if out-of-network providers at in-network facilities billed charges exceeding the Qualifying Payment Amount (QPA). Flag violations under NSA 45 CFR § 149.410.
+4. **Unbundling & Upcoding Analysis:** Audit claims against NCCI edits to detect unbundled panel components or artificially elevated evaluation and management (E/M) service tiers.
+
+---
+
+## Retention Policy Matrix
+
+| Class ID | Retention Trigger | Minimum Window | Legal / Administrative Basis | Enforcement Scope |
+| :--- | :--- | :--- | :--- | :--- |
+| `HIPAA-DOC-6Y` | `last_effective_date` | 6 Years | 45 CFR § 164.316(b)(2)(i) | Mandatory for HIPAA policies, access control lists, and security logs. *Clock starts when policy is superseded.* |
+| `CFPB-FDCPA-3Y` | `last_collection_activity` | 3 Years | 12 CFR § 1006.100 (Reg F) | Debt collection disclosures, validation notices, and communication records. |
+| `NSA-IDR-6Y` | `determination_date` | 6 Years | 45 CFR § 149.510(e)(viii) | Independent Dispute Resolution (IDR) filings, QPA worksheets, and arbitration outcomes. |
+| `NSA-GFE-MEDREC`| `gfe_issue_date` | 6 Years (Floor) | 45 CFR § 149.610(f)(1) | Good Faith Estimates generated for self-pay or uninsured encounters. |
+| `POLICY-7Y` | `creation_date` | 7 Years | Internal Baseline Control | General corporate operational files (Not applicable to HIPAA security rule docs). |
+| `CLAIM-10Y` | `violation_date` | 10 Years | 31 U.S.C. § 3731(b) | Statute of limitations horizon for False Claims Act litigation defenses. |
+
+---
+
+## Actionable Strategy Checklist
+
+*   [ ] **Validate Q4 Deductible Accelerators:** Check if YTD Out-of-Pocket Maximum is satisfied. If met, schedule pending elective procedures, diagnostic screenings, and specialist consultations prior to January 1 plan reset.
+*   [ ] **Execute PII/PHI Scrubbing:** Run local HMAC-SHA256 scrubbing prior to transmitting claims data across external analytical endpoints.
+*   [ ] **Issue Balance Billing Disputes:** If balance-billed for emergency or non-emergency OON care at an in-network facility, dispatch formal NSA Dispute Notice citing 45 CFR § 149.410.
+
+---
+*Disclaimer: This documentation is generated by an automated compliance system for analytical, auditing, and patient advocacy support. It does not constitute formal legal or clinical advice.*
+```
+
+***
