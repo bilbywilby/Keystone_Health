@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <title>To-do list | Keystone Health</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #f6f7fb;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --muted: #687386;
+      --line: #e4e8f0;
+      --accent: #3157c8;
+      --accent-dark: #2444a5;
+    }
+
+    * { box-sizing: border-box; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; padding: 48px 18px; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .app { width: min(100%, 680px); margin: 0 auto; }
+    .eyebrow { margin: 0 0 8px; color: var(--accent); font-size: .75rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2rem, 6vw, 2.8rem); letter-spacing: -.045em; }
+    .intro { margin: 10px 0 28px; color: var(--muted); line-height: 1.6; }
+    .panel { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: 0 16px 45px rgb(26 39 71 / 7%); }
+    .add-form { display: flex; gap: 10px; padding: 20px; border-bottom: 1px solid var(--line); }
+    .add-form input { min-width: 0; flex: 1; padding: 13px 14px; border: 1px solid #d5dbea; border-radius: 10px; outline: none; }
+    .add-form input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(49 87 200 / 14%); }
+    .primary { padding: 0 20px; border: 0; border-radius: 10px; color: #fff; background: var(--accent); font-weight: 700; }
+    .primary:hover { background: var(--accent-dark); }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+    .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+    .filter { padding: 7px 10px; border: 0; border-radius: 8px; color: var(--muted); background: transparent; font-size: .9rem; }
+    .filter[aria-pressed="true"] { color: var(--accent); background: #eef2ff; font-weight: 700; }
+    .remaining { margin: 0; color: var(--muted); font-size: .9rem; white-space: nowrap; }
+    .todo-list { min-height: 116px; margin: 0; padding: 0 20px; list-style: none; }
+    .todo-item { display: flex; align-items: center; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+    .todo-item:last-child { border-bottom: 0; }
+    .todo-item input[type="checkbox"] { width: 19px; height: 19px; flex: 0 0 auto; accent-color: var(--accent); }
+    .todo-text { min-width: 0; flex: 1; overflow-wrap: anywhere; line-height: 1.45; }
+    .todo-item.completed .todo-text { color: #8992a2; text-decoration: line-through; }
+    .delete { width: 36px; height: 36px; border: 0; border-radius: 9px; color: #7a8495; background: transparent; font-size: 1.2rem; }
+    .delete:hover, .delete:focus-visible { color: #a42637; background: #fff0f1; }
+    .empty { padding: 30px 12px; color: var(--muted); text-align: center; }
+    .footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-top: 1px solid var(--line); }
+    .storage-status { margin: 0; color: var(--muted); font-size: .8rem; }
+    .clear { padding: 7px 0 7px 8px; border: 0; color: var(--muted); background: transparent; font-size: .85rem; }
+    .clear:hover { color: #a42637; }
+    .clear:disabled { cursor: default; opacity: .45; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    @media (max-width: 480px) {
+      body { padding: 30px 12px; }
+      .add-form, .toolbar, .footer { padding-right: 14px; padding-left: 14px; }
+      .todo-list { padding-right: 14px; padding-left: 14px; }
+      .toolbar { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <p class="eyebrow">Keystone Health · Personal workspace</p>
+    <h1>To-do list</h1>
+    <p class="intro">Keep track of what needs doing. Your tasks are saved in this browser on this device.</p>
+
+    <section class="panel" aria-label="To-do list application">
+      <form class="add-form" id="add-form">
+        <label class="sr-only" for="new-todo">Add a task</label>
+        <input id="new-todo" name="todo" type="text" maxlength="200" placeholder="What needs to get done?" autocomplete="off" required>
+        <button class="primary" type="submit">Add task</button>
+      </form>
+
+      <div class="toolbar">
+        <div class="filters" role="group" aria-label="Filter tasks">
+          <button class="filter" type="button" data-filter="all" aria-pressed="true">All</button>
+          <button class="filter" type="button" data-filter="active" aria-pressed="false">Active</button>
+          <button class="filter" type="button" data-filter="completed" aria-pressed="false">Completed</button>
+        </div>
+        <p class="remaining" id="remaining" aria-live="polite">0 tasks left</p>
+      </div>
+
+      <ul class="todo-list" id="todo-list" aria-label="Tasks"></ul>
+      <div class="empty" id="empty-state">Nothing here yet. Add a task to get started.</div>
+
+      <footer class="footer">
+        <p class="storage-status" id="storage-status" role="status">Saved locally in this browser</p>
+        <button class="clear" id="clear-completed" type="button" disabled>Clear completed</button>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "keystone-health.todos.v1";
+      const form = document.querySelector("#add-form");
+      const input = document.querySelector("#new-todo");
+      const list = document.querySelector("#todo-list");
+      const remaining = document.querySelector("#remaining");
+      const emptyState = document.querySelector("#empty-state");
+      const storageStatus = document.querySelector("#storage-status");
+      const clearCompletedButton = document.querySelector("#clear-completed");
+      const filterButtons = [...document.querySelectorAll("[data-filter]")];
+      let activeFilter = "all";
+      let storageAvailable = true;
+      let todos = loadTodos();
+
+      function loadTodos() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          if (!Array.isArray(parsed)) return [];
+          return parsed.filter((todo) =>
+            todo && typeof todo.id === "string" &&
+            typeof todo.text === "string" &&
+            typeof todo.completed === "boolean"
+          );
+        } catch (error) {
+          storageAvailable = false;
+          return [];
+        }
+      }
+
+      function saveTodos() {
+        if (!storageAvailable) return;
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+          storageStatus.textContent = "Saved locally in this browser";
+        } catch (error) {
+          storageAvailable = false;
+          storageStatus.textContent = "Could not save locally. Browser storage may be unavailable.";
+        }
+      }
+
+      function makeId() {
+        return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      }
+
+      function render() {
+        const visibleTodos = todos.filter((todo) => {
+          if (activeFilter === "active") return !todo.completed;
+          if (activeFilter === "completed") return todo.completed;
+          return true;
+        });
+        const activeCount = todos.filter((todo) => !todo.completed).length;
+        remaining.textContent = `${activeCount} ${activeCount === 1 ? "task" : "tasks"} left`;
+        clearCompletedButton.disabled = !todos.some((todo) => todo.completed);
+        emptyState.hidden = visibleTodos.length > 0;
+        emptyState.textContent = todos.length === 0
+          ? "Nothing here yet. Add a task to get started."
+          : "No tasks match this filter.";
+
+        list.replaceChildren();
+        for (const todo of visibleTodos) {
+          const item = document.createElement("li");
+          item.className = `todo-item${todo.completed ? " completed" : ""}`;
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = todo.completed;
+          checkbox.setAttribute("aria-label", `Mark “${todo.text}” as ${todo.completed ? "active" : "completed"}`);
+          checkbox.addEventListener("change", () => {
+            todo.completed = checkbox.checked;
+            saveTodos();
+            render();
+          });
+
+          const text = document.createElement("span");
+          text.className = "todo-text";
+          text.textContent = todo.text;
+
+          const removeButton = document.createElement("button");
+          removeButton.className = "delete";
+          removeButton.type = "button";
+          removeButton.textContent = "×";
+          removeButton.setAttribute("aria-label", `Delete “${todo.text}”`);
+          removeButton.addEventListener("click", () => {
+            todos = todos.filter((entry) => entry.id !== todo.id);
+            saveTodos();
+            render();
+          });
+
+          item.append(checkbox, text, removeButton);
+          list.append(item);
+        }
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const text = input.value.trim();
+        if (!text) {
+          input.focus();
+          return;
+        }
+        todos.unshift({ id: makeId(), text, completed: false });
+        input.value = "";
+        activeFilter = "all";
+        filterButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.filter === activeFilter));
+        });
+        saveTodos();
+        render();
+        input.focus();
+      });
+
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          activeFilter = button.dataset.filter;
+          filterButtons.forEach((filterButton) => {
+            filterButton.setAttribute("aria-pressed", String(filterButton === button));
+          });
+          render();
+        });
+      });
+
+      clearCompletedButton.addEventListener("click", () => {
+        todos = todos.filter((todo) => !todo.completed);
+        saveTodos();
+        render();
+      });
+
+      if (!storageAvailable) {
+        storageStatus.textContent = "Browser storage unavailable; tasks will not persist";
+      }
+      render();
+    })();
+  </script>
+</body>
+</html>
